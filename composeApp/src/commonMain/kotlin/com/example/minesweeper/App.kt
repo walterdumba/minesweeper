@@ -1,11 +1,19 @@
 package com.example.minesweeper
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -33,7 +41,7 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Board(board = BoardGame(8,8))
+            Board(board = BoardGame(16,16))
         }
     }
 }
@@ -43,19 +51,47 @@ fun App() {
 fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
     val drawablesMap = Res.allDrawableResources
     LazyVerticalGrid(
-        modifier = modifier,
+        modifier = modifier.background(color = Color.Black),
         columns = GridCells.Fixed(board.cols)
     ){
-        items( board.getBoard()){ cell ->
-            var key = when {
-                !cell.isVisible -> "hidden"
+        items(
+            board.getBoard(),
+            key = { cell -> cell.position }
+        ){ cell ->
+            val key = when {
+                !cell.visible -> "hidden"
                 cell.isMine() -> "mine"
                 cell.isEmpty() -> "empty"
                 cell.isNotMine() -> "_${cell.value}"
                 else -> "empty"
             }
             val drawable = drawablesMap[key]
-            Cell(face = drawable!!)
+
+            AnimatedVisibility(
+                visible = cell.visible,
+                enter = fadeIn(
+                    animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+                ),
+                exit = fadeOut(
+                    animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+                ),
+                modifier = Modifier.background(Color.White)
+            ){
+                Cell(face = drawable!!) {
+                    board.expand(cell)
+                    if(cell.isMine()){
+                        //TODO: Handle Game over here
+                    }
+                }
+            }
+            if(!cell.visible) {
+                Cell(face = drawable!!) {
+                    board.expand(cell)
+                    if(cell.isMine()){
+                        //TODO: Handle Game over here
+                    }
+                }
+            }
         }
     }
 }
@@ -68,10 +104,13 @@ fun BoardPreview(){
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Cell(modifier: Modifier = Modifier, face: DrawableResource){
+fun Cell(modifier: Modifier = Modifier, face: DrawableResource, onClick:()-> Unit){
     Column(
-        modifier = modifier.border(width = 2.dp, color = Color.Black, shape = RectangleShape),
+        modifier = modifier
+            .border(width = 2.dp, color = Color.Black, shape = RectangleShape)
+            .onClick(onClick = onClick)
     ) {
         Image(painter = painterResource(resource = face), contentDescription = null)
     }
@@ -81,6 +120,6 @@ fun Cell(modifier: Modifier = Modifier, face: DrawableResource){
 @Composable
 fun CellPreview(){
     MaterialTheme {
-        Cell(face = Res.drawable._1)
+        Cell(face = Res.drawable._1, onClick = {})
     }
 }

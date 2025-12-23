@@ -1,18 +1,23 @@
 package com.example.minesweeper
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import kotlin.random.Random
 
 
+class Position(var x:Int, var y:Int)
 
 data class Cell(var value: Char){
-    var isVisible:Boolean = false
-        get() = field
-        set(value) {
-            field = value
-        }
+    var visible by mutableStateOf(false)
+    lateinit var position: Position
 
-    constructor():this('0')
+    constructor(): this('0')
+    constructor(x: Int,  y: Int) : this() {
+        position = Position(x,y)
+    }
 
     fun isMine() = value == '*'
     fun isNotMine() = !isMine()
@@ -23,14 +28,13 @@ data class Cell(var value: Char){
         return "[$value]"
     }
 
-
-
 }
 
 
 class BoardGame(var rows:Int = 16, var cols: Int = 16){
-    private val board = MutableList(rows) { _->
-        MutableList(cols){ _-> Cell() }
+
+    private val _board = MutableList(rows) { y ->
+        MutableList(cols){ x-> Cell(x , y) }
     }
 
     init {
@@ -38,8 +42,8 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
     }
 
     fun getBoard(): List<Cell> {
-        val linear = MutableList(0) { _-> Cell() }
-        board.forEach { eachRow ->
+        val linear = MutableList(0) { _-> Cell() }.toMutableStateList()
+        _board.forEach { eachRow ->
             linear.addAll(eachRow)
         }
         return linear
@@ -53,7 +57,7 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
         (numberOfMines downTo 1).forEach { _ ->
             val y = Random.nextInt(rows)
             val x = Random.nextInt(cols)
-            val cell = board[y][x]
+            val cell = _board[y][x]
             if(!cell.isMine()){
                 cell.setMine()
             }
@@ -67,7 +71,7 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
             for(r in row - 1..row + 1) {
                 for(c in col - 1..col + 1) {
                     if(isWithinBoundaries(r, c)) {
-                        val cell = board[r][c]
+                        val cell = _board[r][c]
                         if(cell.isNotMine()) {
                             cell.incAdjacentMines()
                         }
@@ -82,10 +86,37 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
     fun print() {
         for(row in 0..< rows) {
             for(col in 0..<cols) {
-                val cell = board[row][col]
+                val cell = _board[row][col]
                 print(cell)
             }
             println()
+        }
+    }
+
+    fun expand(cell: Cell) {
+        if(!cell.isEmpty()){
+            cell.visible = true
+        }else{
+            expandRecursively(cell)
+        }
+    }
+
+    private fun expandRecursively(cell: Cell) {
+        if(cell.visible){
+            return
+        }
+        cell.visible = true
+        val row = cell.position.y
+        val col = cell.position.x
+        for(r in row - 1..row + 1) {
+            for(c in col - 1..col + 1) {
+                if(isWithinBoundaries(r, c) && !(r == row && c == col)) {
+                    val neighbor = _board[r][c]
+                    if(neighbor.isEmpty()) {
+                        expandRecursively(neighbor)
+                    }
+                }
+            }
         }
     }
 }
