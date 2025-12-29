@@ -4,7 +4,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,7 +36,7 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Board(board = BoardGame(10,10))
+            Board(board = BoardGame(16,16))
         }
     }
 }
@@ -62,29 +61,11 @@ fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
             }
             val drawable = drawablesMap[key]
 
-            AnimatedVisibility(
-                visible = cell.visible,
-                enter = fadeIn(
-                    animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
-                ),
-                exit = fadeOut(
-                    animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
-                ),
-                modifier = Modifier.background(Color.White)
-            ){
-                Cell(face = drawable!!) {
-                    board.expand(cell)
-                    if(cell.isMine()){
-                        //TODO: Handle Game over here
-                    }
-                }
-            }
-            if(!cell.visible) {
-                Cell(face = drawable!!) {
-                    board.expand(cell)
-                    if(cell.isMine()){
-                        //TODO: Handle Game over here
-                    }
+            //TODO: Right click will add the flag
+            AnimatedCell(modifier = modifier, face = drawable!!, visible = { cell.visible }) {
+                board.expand(cell)
+                if(cell.isMine()){
+                    //TODO: Game over
                 }
             }
         }
@@ -93,13 +74,12 @@ fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
 
 @Preview
 @Composable
-fun BoardPreview(){
+fun BoardPreview() {
     MaterialTheme {
         Board()
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Cell(modifier: Modifier = Modifier, face: DrawableResource, onClick:()-> Unit){
     Card(
@@ -108,6 +88,37 @@ fun Cell(modifier: Modifier = Modifier, face: DrawableResource, onClick:()-> Uni
     ) {
         Image(painter = painterResource(resource = face), contentDescription = null)
     }
+}
+
+@Composable
+fun AnimatedCell(
+    modifier: Modifier = Modifier,
+    face: DrawableResource,
+    visible:() ->Boolean = {false},
+    onClick: () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible(),
+        enter = fadeIn(
+            animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+        ),
+        exit = fadeOut(
+            animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+        ),
+        modifier = Modifier.background(Color.White)
+    ){
+        Cell(modifier = modifier, face = face, onClick = onClick)
+    }
+    if(!visible()) {
+        Cell(modifier = modifier, face = face, onClick = onClick)
+    }
+}
+
+
+@Preview
+@Composable
+fun AnimatedCellPreview(){
+    AnimatedCell(visible = {false}, face = Res.drawable._1, onClick = {})
 }
 
 @Preview
