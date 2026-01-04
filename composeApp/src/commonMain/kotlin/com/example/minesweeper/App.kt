@@ -6,20 +6,24 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import minesweeper.composeapp.generated.resources.Res
 import minesweeper.composeapp.generated.resources._1
 import minesweeper.composeapp.generated.resources.allDrawableResources
@@ -31,16 +35,36 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Board(board = BoardGame(16,16))
+        Scaffold(
+            topBar = { StatusScreen() }
+        ){ paddingValues ->
+            GameScreen(
+                modifier = Modifier.padding(paddingValues = paddingValues),
+                board = BoardGame(16,16)
+            )
         }
     }
 }
 
+@Composable
+fun StatusScreen() {
+    Spacer(Modifier.height(64.dp))
+    Column{
+        Text(
+            text = "Status 😊",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun GameScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
+    Column(modifier = modifier){
+        Board(board = board)
+    }
+}
 
 @Composable
 fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
@@ -53,6 +77,7 @@ fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
             board.getBoard()
         ){ cell ->
             val key = when {
+                cell.isFlagged -> "flag"
                 !cell.visible -> "hidden"
                 cell.isMine() -> "mine"
                 cell.isEmpty() -> "empty"
@@ -60,12 +85,17 @@ fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
                 else -> "empty"
             }
             val drawable = drawablesMap[key]
-
-            //TODO: Right click will add the flag
-            AnimatedCell(modifier = modifier, face = drawable!!, visible = { cell.visible }) {
-                board.expand(cell)
-                if(cell.isMine()){
-                    //TODO: Game over
+            AnimatedCell(
+                modifier = modifier,
+                face = drawable!!,
+                visible = { cell.visible },
+                onLongClick = { cell.isFlagged = !cell.isFlagged },
+            ) {
+                if(!cell.isFlagged) {
+                    board.expand(cell)
+                    if(cell.isMine()) {
+                        //TODO: Game over
+                    }
                 }
             }
         }
@@ -81,10 +111,19 @@ fun BoardPreview() {
 }
 
 @Composable
-fun Cell(modifier: Modifier = Modifier, face: DrawableResource, onClick:()-> Unit){
+fun Cell(
+    modifier: Modifier = Modifier,
+    face: DrawableResource,
+    onLongClick: (() -> Unit) = {},
+    onClick:(()-> Unit) = {}
+){
     Card(
-        onClick = onClick,
-        modifier = modifier.background(color = Color.Black)
+        modifier = modifier
+            .background(color = Color.Black)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
     ) {
         Image(painter = painterResource(resource = face), contentDescription = null)
     }
@@ -94,23 +133,24 @@ fun Cell(modifier: Modifier = Modifier, face: DrawableResource, onClick:()-> Uni
 fun AnimatedCell(
     modifier: Modifier = Modifier,
     face: DrawableResource,
-    visible:() ->Boolean = {false},
-    onClick: () -> Unit
+    visible: () -> Boolean = { false },
+    onLongClick: () -> Unit,
+    onClick: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible(),
         enter = fadeIn(
-            animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+            animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
         ),
         exit = fadeOut(
-            animationSpec = tween(durationMillis = 3000, easing = LinearOutSlowInEasing)
+            animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
         ),
         modifier = Modifier.background(Color.White)
     ){
-        Cell(modifier = modifier, face = face, onClick = onClick)
+        Cell(modifier = modifier, face = face)
     }
     if(!visible()) {
-        Cell(modifier = modifier, face = face, onClick = onClick)
+        Cell(modifier = modifier, face = face, onLongClick = onLongClick, onClick = onClick)
     }
 }
 
@@ -118,7 +158,7 @@ fun AnimatedCell(
 @Preview
 @Composable
 fun AnimatedCellPreview(){
-    AnimatedCell(visible = {false}, face = Res.drawable._1, onClick = {})
+    AnimatedCell(face = Res.drawable._1, onLongClick = {}) {}
 }
 
 @Preview

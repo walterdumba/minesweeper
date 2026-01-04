@@ -11,6 +11,7 @@ import kotlin.random.Random
 class Position(var x:Int, var y:Int)
 
 data class Cell(var value: Char){
+    var isFlagged by mutableStateOf(false)
     var visible by mutableStateOf(false)
     lateinit var position: Position
 
@@ -112,6 +113,7 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
             for(c in col - 1..col + 1) {
                 if(isWithinBoundaries(r, c) && !(r == row && c == col)) {
                     val neighbor = _board[r][c]
+                    //FIXME: right now it is expanding flagged cells as well
                     if(neighbor.isEmpty()) {
                         expandRecursively(neighbor)
                     }
