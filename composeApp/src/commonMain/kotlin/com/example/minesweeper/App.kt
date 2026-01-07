@@ -7,10 +7,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -20,14 +22,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import minesweeper.composeapp.generated.resources.PressStart2P_Regular
 import minesweeper.composeapp.generated.resources.Res
 import minesweeper.composeapp.generated.resources._1
 import minesweeper.composeapp.generated.resources.allDrawableResources
+import minesweeper.composeapp.generated.resources.restart
+import minesweeper.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -40,22 +52,70 @@ fun App() {
         ){ paddingValues ->
             GameScreen(
                 modifier = Modifier.padding(paddingValues = paddingValues),
-                board = BoardGame(16,16)
+                board = BoardGame(12,8)
             )
         }
     }
 }
 
 @Composable
-fun StatusScreen() {
-    Spacer(Modifier.height(64.dp))
-    Column{
+fun StatusScreen(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .background(Color.DarkGray)
+            .fillMaxWidth()
+            .heightIn(max = 64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ){
+         Cell(modifier = Modifier, face = Res.drawable.restart
+         ){
+             //TODO:
+         }
+        Spacer(Modifier.padding(16.dp))
+        TimerPanel(text = "0:00")
+        Spacer(Modifier.padding(16.dp))
+        Cell(modifier = Modifier, face = Res.drawable.settings
+        ){
+            //TODO:
+        }
+
+    }
+}
+
+@Composable
+fun TimerPanel(
+    modifier: Modifier = Modifier,
+    text: String,
+    onStart: (()-> Unit) = {}, //TODO:
+    onGameOver:(()->Unit) = {}//TODO:
+){
+    Row (modifier = modifier){
+        val brush = Brush.linearGradient(colors = listOf(Color.Red, Color.Yellow))
+        val fontFamily = FontFamily(Font(Res.font.PressStart2P_Regular))
         Text(
-            text = "Status 😊",
+            fontFamily = fontFamily,
+            text = text,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.fillMaxWidth()
+            fontSize = 32.sp,
+            style = TextStyle(brush = brush, fontWeight = FontWeight.Bold)
         )
+    }
+}
+
+@Preview
+@Composable
+fun TimerPanelPreview(){
+    MaterialTheme {
+        TimerPanel(text = "0:00")
+    }
+}
+
+@Preview
+@Composable
+fun StatusScreenPreview(){
+    MaterialTheme {
+        StatusScreen()
     }
 }
 
@@ -115,7 +175,7 @@ fun Cell(
     modifier: Modifier = Modifier,
     face: DrawableResource,
     onLongClick: (() -> Unit) = {},
-    onClick:(()-> Unit) = {}
+    onClick: (()-> Unit) = {}
 ){
     Card(
         modifier = modifier
