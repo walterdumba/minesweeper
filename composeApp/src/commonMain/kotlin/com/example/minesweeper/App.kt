@@ -48,7 +48,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun App() {
     MaterialTheme {
         Scaffold(
-            topBar = { StatusScreen() }
         ){ paddingValues ->
             GameScreen(
                 modifier = Modifier.padding(paddingValues = paddingValues),
@@ -83,6 +82,14 @@ fun StatusScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@Preview
+@Composable
+fun StatusScreenPreview(){
+    MaterialTheme {
+        StatusScreen()
+    }
+}
+
 @Composable
 fun TimerPanel(
     modifier: Modifier = Modifier,
@@ -111,23 +118,25 @@ fun TimerPanelPreview(){
     }
 }
 
-@Preview
-@Composable
-fun StatusScreenPreview(){
-    MaterialTheme {
-        StatusScreen()
-    }
-}
-
 @Composable
 fun GameScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
     Column(modifier = modifier){
-        Board(board = board)
+        StatusScreen()
+        BoardScreen(board = board)
     }
 }
 
+@Preview
 @Composable
-fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
+fun GameScreenPreview(){
+    MaterialTheme {
+        GameScreen(board =  BoardGame(8,8))
+    }
+
+}
+
+@Composable
+fun BoardScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
     val drawablesMap = Res.allDrawableResources
     LazyVerticalGrid(
         modifier = modifier.background(color = Color.Black),
@@ -164,9 +173,9 @@ fun Board(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
 
 @Preview
 @Composable
-fun BoardPreview() {
+fun BoardScreenPreview() {
     MaterialTheme {
-        Board()
+        BoardScreen()
     }
 }
 
