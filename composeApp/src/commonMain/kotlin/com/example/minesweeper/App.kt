@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.codelab.basiclayouts.ui.theme.MineSweeperTheme
 import minesweeper.composeapp.generated.resources.PressStart2P_Regular
 import minesweeper.composeapp.generated.resources.Res
 import minesweeper.composeapp.generated.resources._1
@@ -46,11 +48,13 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    MineSweeperTheme{
         Scaffold(
         ){ paddingValues ->
             GameScreen(
-                modifier = Modifier.padding(paddingValues = paddingValues),
+                modifier = Modifier
+                    .padding(paddingValues = paddingValues)
+                    .background(MaterialTheme.colorScheme.background),
                 board = BoardGame(12,8)
             )
         }
@@ -59,9 +63,9 @@ fun App() {
 
 @Composable
 fun StatusScreen(modifier: Modifier = Modifier) {
+    Spacer(modifier.height(16.dp))
     Row(
         modifier = modifier
-            .background(Color.DarkGray)
             .fillMaxWidth()
             .heightIn(max = 64.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -80,12 +84,13 @@ fun StatusScreen(modifier: Modifier = Modifier) {
         }
 
     }
+    Spacer(modifier.height(16.dp))
 }
 
 @Preview
 @Composable
 fun StatusScreenPreview(){
-    MaterialTheme {
+    MineSweeperTheme {
         StatusScreen()
     }
 }
@@ -113,7 +118,7 @@ fun TimerPanel(
 @Preview
 @Composable
 fun TimerPanelPreview(){
-    MaterialTheme {
+    MineSweeperTheme {
         TimerPanel(text = "0:00")
     }
 }
@@ -129,7 +134,7 @@ fun GameScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
 @Preview
 @Composable
 fun GameScreenPreview(){
-    MaterialTheme {
+    MineSweeperTheme {
         GameScreen(board =  BoardGame(8,8))
     }
 
@@ -174,7 +179,7 @@ fun BoardScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
 @Preview
 @Composable
 fun BoardScreenPreview() {
-    MaterialTheme {
+    MineSweeperTheme {
         BoardScreen()
     }
 }
@@ -233,7 +238,7 @@ fun AnimatedCellPreview(){
 @Preview
 @Composable
 fun CellPreview(){
-    MaterialTheme {
+    MineSweeperTheme {
         Cell(face = Res.drawable._1, onClick = {})
     }
 }
