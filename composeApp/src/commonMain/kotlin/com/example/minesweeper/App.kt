@@ -46,43 +46,41 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-@Preview
+@Preview(
+    showBackground = true
+)
 fun App() {
     MineSweeperTheme{
         Scaffold(
         ){ paddingValues ->
+            val board = BoardGame(12, 8)
             GameScreen(
                 modifier = Modifier
                     .padding(paddingValues = paddingValues)
                     .background(MaterialTheme.colorScheme.background),
-                board = BoardGame(12,8)
+                board = board
             )
         }
     }
 }
 
 @Composable
-fun StatusScreen(modifier: Modifier = Modifier) {
+fun StatusScreen(
+    modifier: Modifier = Modifier,
+    onRestartClick: ()->Unit = {},
+    onSettingsClick: ()->Unit = {}
+) {
     Spacer(modifier.height(16.dp))
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(max = 64.dp),
+        modifier = modifier.fillMaxWidth().heightIn(max = 64.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
-         Cell(modifier = Modifier, face = Res.drawable.restart
-         ){
-             //TODO:
-         }
+        Cell(modifier = Modifier, face = Res.drawable.restart, onClick = onRestartClick)
         Spacer(Modifier.padding(16.dp))
         TimerPanel(text = "0:00")
         Spacer(Modifier.padding(16.dp))
-        Cell(modifier = Modifier, face = Res.drawable.settings
-        ){
-            //TODO:
-        }
-
+        Cell(modifier = Modifier, face = Res.drawable.settings, onClick = onSettingsClick)
     }
     Spacer(modifier.height(16.dp))
 }
@@ -126,7 +124,7 @@ fun TimerPanelPreview(){
 @Composable
 fun GameScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
     Column(modifier = modifier){
-        StatusScreen()
+        StatusScreen(onRestartClick = { board.restart() })
         BoardScreen(board = board)
     }
 }
@@ -148,7 +146,7 @@ fun BoardScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
         columns = GridCells.Fixed(board.cols)
     ){
         items(
-            board.getBoard()
+            board.getSnapShot()
         ){ cell ->
             val key = when {
                 cell.isFlagged -> "flag"
@@ -165,11 +163,9 @@ fun BoardScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
                 visible = { cell.visible },
                 onLongClick = { cell.isFlagged = !cell.isFlagged },
             ) {
-                if(!cell.isFlagged) {
-                    board.expand(cell)
-                    if(cell.isMine()) {
-                        //TODO: Game over
-                    }
+                board.expand(cell)
+                if(cell.isMine()) {
+                    //TODO: Game over
                 }
             }
         }

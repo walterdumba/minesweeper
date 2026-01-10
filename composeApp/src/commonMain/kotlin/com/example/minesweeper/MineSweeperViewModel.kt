@@ -33,17 +33,20 @@ data class Cell(var value: Char){
 
 
 class BoardGame(var rows:Int = 16, var cols: Int = 16){
-
-    private val _board = MutableList(rows) { y ->
-        MutableList(cols){ x-> Cell(x , y) }
-    }
+    private var started by mutableStateOf(false)
+    private lateinit var _board: MutableList<MutableList<Cell>>
+    private var board by mutableStateOf(listOf<Cell>())
 
     init {
         initBoard()
     }
 
-    fun getBoard(): List<Cell> {
-        val linear = MutableList(0) { _-> Cell() }.toMutableStateList()
+    fun getSnapShot(): List<Cell> {
+        return board
+    }
+
+    private fun newSnapshot(): List<Cell> {
+        val linear = MutableList(0) { _ -> Cell() }.toMutableStateList()
         _board.forEach { eachRow ->
             linear.addAll(eachRow)
         }
@@ -51,6 +54,12 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
     }
 
     private fun initBoard() {
+        //This is required so that the snapshotList is get a different state and trigger the recomposition
+        //TODO: _board created twice for no good reason
+        //TODO: Maybe change the _board to a linear array as creating arrays constantly during the recomposition doesn't sound ideal
+        _board = MutableList(rows) { y ->
+            MutableList(cols){ x-> Cell(x , y) }
+        }
         val minePercentage = Random.nextDouble(0.05, 0.2)
         val numberOfMines = (rows * cols * (minePercentage)).toInt()
         val minesLocation = MutableList(0){ _-> 0 to 0}
@@ -66,21 +75,24 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
         }
 
         //Set the number of adjacent mines for the neighbors
-        for(pair in minesLocation) {
+        for (pair in minesLocation) {
             val row = pair.first
             val col = pair.second
-            for(r in row - 1..row + 1) {
-                for(c in col - 1..col + 1) {
-                    if(isWithinBoundaries(r, c)) {
+            for (r in row - 1..row + 1) {
+                for (c in col - 1..col + 1) {
+                    if (isWithinBoundaries(r, c)) {
                         val cell = _board[r][c]
-                        if(cell.isNotMine()) {
+                        if (cell.isNotMine()) {
                             cell.incAdjacentMines()
                         }
                     }
                 }
             }
         }
+        board = newSnapshot()
     }
+
+    fun restart() = initBoard()
 
     private fun isWithinBoundaries(row: Int, col: Int): Boolean = row >= 0 && row < rows && col >= 0 && col < cols
 
@@ -95,6 +107,12 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
     }
 
     fun expand(cell: Cell) {
+        if(!started){
+            started = true
+        }
+        if(cell.isFlagged){
+            return
+        }
         if(!cell.isEmpty()){
             cell.visible = true
         }else{
@@ -124,5 +142,6 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
 }
 
 class MineSweeperViewModel(var boardGame: BoardGame = BoardGame(16,16)): ViewModel() {
-    fun getBoardGame() = boardGame.getBoard()
+
+    fun getBoardGame() = boardGame.getSnapShot()
 }
