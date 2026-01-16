@@ -38,6 +38,7 @@ import minesweeper.composeapp.generated.resources.PressStart2P_Regular
 import minesweeper.composeapp.generated.resources.Res
 import minesweeper.composeapp.generated.resources._1
 import minesweeper.composeapp.generated.resources.allDrawableResources
+import minesweeper.composeapp.generated.resources.lost
 import minesweeper.composeapp.generated.resources.restart
 import minesweeper.composeapp.generated.resources.settings
 import org.jetbrains.compose.resources.DrawableResource
@@ -53,7 +54,7 @@ fun App() {
     MineSweeperTheme{
         Scaffold(
         ){ paddingValues ->
-            val board = BoardGame(12, 8)
+            val board = BoardGame(10, 7)
             GameScreen(
                 modifier = Modifier
                     .padding(paddingValues = paddingValues)
@@ -67,6 +68,7 @@ fun App() {
 @Composable
 fun StatusScreen(
     modifier: Modifier = Modifier,
+    gameOver: Boolean = false,
     onRestartClick: ()->Unit = {},
     onSettingsClick: ()->Unit = {}
 ) {
@@ -76,7 +78,10 @@ fun StatusScreen(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ){
-        Cell(modifier = Modifier, face = Res.drawable.restart, onClick = onRestartClick)
+        Cell(modifier = Modifier,
+            face = if (gameOver) Res.drawable.lost else Res.drawable.restart,
+            onClick = onRestartClick
+        )
         Spacer(Modifier.padding(16.dp))
         TimerPanel(text = "0:00")
         Spacer(Modifier.padding(16.dp))
@@ -107,7 +112,7 @@ fun TimerPanel(
             fontFamily = fontFamily,
             text = text,
             textAlign = TextAlign.Center,
-            fontSize = 32.sp,
+            fontSize = 34.sp,
             style = TextStyle(brush = brush, fontWeight = FontWeight.Bold)
         )
     }
@@ -124,7 +129,7 @@ fun TimerPanelPreview(){
 @Composable
 fun GameScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
     Column(modifier = modifier){
-        StatusScreen(onRestartClick = { board.restart() })
+        StatusScreen(onRestartClick = { board.restart() }, gameOver = board.gameOver)
         BoardScreen(board = board)
     }
 }
@@ -165,6 +170,7 @@ fun BoardScreen(modifier: Modifier = Modifier, board: BoardGame = BoardGame()){
             ) {
                 board.expand(cell)
                 if(cell.isMine()) {
+                    board.gameOver = true
                     //TODO: Game over
                 }
             }

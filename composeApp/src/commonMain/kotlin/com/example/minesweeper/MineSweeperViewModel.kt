@@ -34,6 +34,7 @@ data class Cell(var value: Char){
 
 class BoardGame(var rows:Int = 16, var cols: Int = 16){
     private var started by mutableStateOf(false)
+    var gameOver by mutableStateOf(false)
     private lateinit var _board: MutableList<MutableList<Cell>>
     private var board by mutableStateOf(listOf<Cell>())
 
@@ -60,7 +61,7 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
         _board = MutableList(rows) { y ->
             MutableList(cols){ x-> Cell(x , y) }
         }
-        val minePercentage = Random.nextDouble(0.05, 0.2)
+        val minePercentage = Random.nextDouble(0.05, 0.5)
         val numberOfMines = (rows * cols * (minePercentage)).toInt()
         val minesLocation = MutableList(0){ _-> 0 to 0}
         //FIXME: Arbitrary number of 9 mines, wrong number of adjacent mines
@@ -89,6 +90,8 @@ class BoardGame(var rows:Int = 16, var cols: Int = 16){
                 }
             }
         }
+        gameOver = false
+        started = false
         board = newSnapshot()
     }
 
